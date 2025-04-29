@@ -7,6 +7,10 @@ basekit.addDomainList(['feishu.cn','127.0.0.1','aihubmax.com']);
 
 // 添加授权配置
 basekit.addField({
+  // 添加字段配置选项
+  options: {
+    disableAutoUpdate: false, // 关闭自动更新
+  },
   // 定义授权配置
   authorizations: [
     {
@@ -26,7 +30,7 @@ basekit.addField({
     messages: {
       'zh-CN': {
         'imageField': '图片字段',
-        'description': '裁剪图片并保留最大纵向尺寸',
+        'description': '按比例裁剪图片',
         'processingFailed': '图片处理失败',
         'ratioType': '裁剪比例类型',
         'ratioTypeDescription': '选择预设比例或自定义比例',
@@ -34,6 +38,8 @@ basekit.addField({
         'customRatio': '自定义比例',
         'widthRatio': '宽度比例',
         'heightRatio': '高度比例',
+        'customRatioInput': '自定义比例（宽:高）[优先]',
+        'customRatioPlaceholder': '例如：16:9',
         'invalidRatio': '无效的比例值',
         'square': '正方形 (1:1)',
         'portrait': '纵向 (9:16)',
@@ -42,6 +48,22 @@ basekit.addField({
         'widescreen': '宽屏 (21:9)',
         'apiKey': 'API Key',
         'apiKeyDescription': '请输入图片处理服务的 API Key',
+        'anchorPosition': '锚点位置',
+        'anchorPositionDescription': '选择裁剪的起始位置',
+        'topLeft': '左上锚点（Top-Left）',
+        'topCenter': '顶部居中锚点（Top-Center）',
+        'topRight': '右上锚点（Top-Right）',
+        'middleLeft': '左中锚点（Middle-Left）',
+        'center': '正中锚点（Center）',
+        'middleRight': '右中锚点（Middle-Right）',
+        'bottomLeft': '左下锚点（Bottom-Left）',
+        'bottomCenter': '底部居中锚点（Bottom-Center）',
+        'bottomRight': '右下锚点（Bottom-Right）',
+        'preserveEdge': '保留边',
+        'preserveEdgeDescription': '选择裁剪时保留的边',
+        'preserveWidth': '宽边',
+        'preserveHeight': '高边',
+        'preserveAuto': '自动识别最长边',
       },
       'en-US': {
         'imageField': 'Image Field',
@@ -53,6 +75,8 @@ basekit.addField({
         'customRatio': 'Custom Ratio',
         'widthRatio': 'Width Ratio',
         'heightRatio': 'Height Ratio',
+        'customRatioInput': 'Custom Ratio (width:height) [Priority]',
+        'customRatioPlaceholder': 'e.g. 16:9',
         'invalidRatio': 'Invalid ratio value',
         'square': 'Square (1:1)',
         'portrait': 'Portrait (9:16)',
@@ -61,6 +85,22 @@ basekit.addField({
         'widescreen': 'Widescreen (21:9)',
         'apiKey': 'API Key',
         'apiKeyDescription': 'Enter the API Key for the image processing service',
+        'anchorPosition': 'Anchor Position',
+        'anchorPositionDescription': 'Select the starting position for cropping',
+        'topLeft': 'Top-Left',
+        'topCenter': 'Top-Center',
+        'topRight': 'Top-Right',
+        'middleLeft': 'Middle-Left',
+        'center': 'Center',
+        'middleRight': 'Middle-Right',
+        'bottomLeft': 'Bottom-Left',
+        'bottomCenter': 'Bottom-Center',
+        'bottomRight': 'Bottom-Right',
+        'preserveEdge': 'Preserve Edge',
+        'preserveEdgeDescription': 'Select which edge to preserve during cropping',
+        'preserveWidth': 'Width',
+        'preserveHeight': 'Height',
+        'preserveAuto': 'Auto-detect longest edge',
       },
       'ja-JP': {
         'imageField': '画像フィールド',
@@ -72,6 +112,8 @@ basekit.addField({
         'customRatio': 'カスタム比',
         'widthRatio': '幅比',
         'heightRatio': '高さ比',
+        'customRatioInput': 'カスタム比（幅:高さ）[優先]',
+        'customRatioPlaceholder': '例：16:9',
         'invalidRatio': '無効な比率値',
         'square': '正方形 (1:1)',
         'portrait': 'ポートレート (9:16)',
@@ -80,6 +122,22 @@ basekit.addField({
         'widescreen': 'ワイドスクリーン (21:9)',
         'apiKey': 'APIキー',
         'apiKeyDescription': '画像処理サービスのAPIキーを入力してください',
+        'anchorPosition': 'アンカー位置',
+        'anchorPositionDescription': 'クロップの開始位置を選択',
+        'topLeft': '左上',
+        'topCenter': '上中央',
+        'topRight': '右上',
+        'middleLeft': '左中央',
+        'center': '中央',
+        'middleRight': '右中央',
+        'bottomLeft': '左下',
+        'bottomCenter': '下中央',
+        'bottomRight': '右下',
+        'preserveEdge': 'エッジを保持',
+        'preserveEdgeDescription': 'クロップ中に保持するエッジを選択',
+        'preserveWidth': '幅',
+        'preserveHeight': '高さ',
+        'preserveAuto': '最長エッジを自動検出',
       },
     }
   },
@@ -98,7 +156,15 @@ basekit.addField({
       },
     },
     {
-      key: 'aspectRatio',
+      key: 'customAspectRatio',
+      label: t('customRatioInput'),
+      component: FieldComponent.Input,
+      props: {
+        placeholder: t('customRatioPlaceholder'),
+      },
+    },
+    {
+      key: 'presetAspectRatio',
       label: t('presetRatio'),
       component: FieldComponent.SingleSelect,
       props: {
@@ -113,18 +179,62 @@ basekit.addField({
       defaultValue: { label: t('portrait'), value: '9:16' },
     },
 
+    {
+      key: 'anchorPosition',
+      label: t('anchorPosition'),
+      component: FieldComponent.SingleSelect,
+      props: {
+        options: [
+          { label: t('topLeft'), value: 'top-left' },
+          { label: t('topCenter'), value: 'top-center' },
+          { label: t('topRight'), value: 'top-right' },
+          { label: t('middleLeft'), value: 'middle-left' },
+          { label: t('center'), value: 'center' },
+          { label: t('middleRight'), value: 'middle-right' },
+          { label: t('bottomLeft'), value: 'bottom-left' },
+          { label: t('bottomCenter'), value: 'bottom-center' },
+          { label: t('bottomRight'), value: 'bottom-right' },
+        ],
+      },
+      defaultValue: { label: t('center'), value: 'center' },
+    },
   ],
   // 定义捷径的返回结果类型为附件字段
   resultType: {
     type: FieldType.Attachment,
   },
   // 执行函数
-  execute: async (formItemParams: { imageField: any[], aspectRatio: { value: string } }, context) => {
-    const { imageField, aspectRatio } = formItemParams;
+  execute: async (formItemParams: {
+    imageField: any[],
+    customAspectRatio: string,
+    presetAspectRatio: { value: string },
+    anchorPosition: { value: string }
+  }, context) => {
+    const { imageField, customAspectRatio, presetAspectRatio, anchorPosition } = formItemParams;
     const attachment = imageField?.[0];
 
     // 获取用户选择的裁剪比例
-    const selectedRatio = aspectRatio?.value || '9:16';
+    let selectedRatio: string;
+
+    // 优先使用自定义比例，如果有的话
+    if (customAspectRatio) {
+      // 处理自定义比例，将中文冒号转换为英文冒号
+      selectedRatio = customAspectRatio.replace('：', ':');
+
+      // 验证比例格式是否正确
+      if (!selectedRatio.match(/^\d+:\d+$/)) {
+        return {
+          code: FieldCode.Error,
+          msg: t('invalidRatio'),
+        };
+      }
+    } else {
+      // 如果没有自定义比例，则使用预设比例
+      selectedRatio = presetAspectRatio?.value || '9:16';
+    }
+
+    // 获取用户选择的锚点位置
+    const selectedAnchor = anchorPosition?.value || 'center';
 
     if (!attachment || !attachment.tmp_url) {
       return {
@@ -152,14 +262,16 @@ basekit.addField({
 
       // 假设我们有一个图片处理服务，可以接收原始图片URL和裁剪参数
       const processingServiceUrl = 'https://aihubmax.com/sapi/plugin/image/resize';
-      // const processingServiceUrl = 'http://127.0.0.1:8000/plugin/image/resize';
+      // const processingServiceUrl = 'http://127.0.0.1:8084/plugin/image/resize';
+
 
       // 构建请求体
       const requestBody = {
         image_url: attachment.tmp_url,
         aspectRatio: selectedRatio,
-        preserveMaxDimension: 'height',
+        preserveMaxDimension: "auto",
         skipIfSameRatio: true, // 如果原图比例与目标比例相同，则不裁剪
+        anchorPosition: selectedAnchor, // 添加锚点位置参数
       };
 
       // 输出请求信息以便调试
@@ -197,8 +309,13 @@ basekit.addField({
       // 检查响应格式，确保我们能正确获取处理后的图片URL
       console.log('Processed image data:', JSON.stringify(processedImageData));
 
+      // 检查API返回的code是否为0（成功）
+      if (processedImageData.code !== 0) {
+        throw new Error(`Image processing failed: ${processedImageData.msg || 'Unknown error'}`);
+      }
+
       // 检查是否原图已经是目标比例，无需裁剪
-      const isOriginalRatio = processedImageData.data?.isOriginalRatio || processedImageData.isOriginalRatio || false;
+      const isOriginalRatio = processedImageData.data?.isOriginalRatio || false;
 
       // 如果原图已经是目标比例，直接使用原图 URL
       let processedImageUrl: string;
@@ -207,7 +324,7 @@ basekit.addField({
         processedImageUrl = attachment.tmp_url;
       } else {
         // 从响应中获取处理后的图片URL
-        processedImageUrl = processedImageData.data?.result || processedImageData.url || processedImageData.imageUrl || processedImageData.processedUrl;
+        processedImageUrl = processedImageData.data?.result;
       }
 
       if (!processedImageUrl) {
